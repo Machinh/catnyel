@@ -50,7 +50,7 @@ def start_server():
 
 # Chamada para abrir o painel
 def open_panel():
-    webbrowser.open_new_tab('http://localhost:8000/index.html')
+    webbrowser.open_new_tab('http://localhost:8000/web/index.html')
 
 add_bot('10.0.0.59', 'username1', 'password1')
 add_bot('10.0.0.60', 'username2', 'password2')
