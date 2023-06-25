@@ -1,3 +1,3 @@
 # catnyel
 
-![cat](https://media.tenor.com/F-1fXpN8Wc8AAAAC/cat-stare-meme-tiktok-gato-encarando-tiktok.gif)
+![cat](https://i.pinimg.com/736x/25/81/05/2581056cf2d79e5a342bd104b8d05e1f.jpg)
